@@ -1,0 +1,6 @@
+###example###
+[teleport-debian]
+#ec2-3-36-98-211.ap-northeast-2.compute.amazonaws.com
+#ec2-52-78-43-211.ap-northeast-2.compute.amazonaws.com
+[teleport-ubuntu]
+ec2-3-38-214-82.ap-northeast-2.compute.amazonaws.com

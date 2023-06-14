@@ -1,0 +1,10 @@
+---
+- name: Reload_Teleport
+  become: yes
+  ansible.builtin.systemd:
+    name: "teleport"
+    state: "reloaded"
+    daemon_reload: yes
+    enabled: yes
+  when:
+    - teleport_control_systemd

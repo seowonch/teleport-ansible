@@ -1,0 +1,81 @@
+---
+
+- name: Check if teleport is installed.
+  ansible.builtin.stat:
+    path: /usr/local/bin/teleport
+  register: teleport_bin
+
+- name: Get installed teleport version
+  ansible.builtin.command:
+    cmd: teleport version
+  args:
+    removes: "{{ teleport_config_path }}"
+  register: "teleport_installed_version"
+  changed_when: false
+  when: teleport_bin.stat.exists
+
+- name: Set teleport_update
+  ansible.builtin.set_fact:
+    update_teleport: "{{ teleport_version not in teleport_installed_version.stdout }}"
+  when: teleport_bin.stat.exists
+  changed_when: update_teleport
+  notify: Reload_Teleport
+
+- name: Unarchive teleport
+  ansible.builtin.unarchive:
+    src: "{{ teleport_url }}"
+    dest: "/tmp"
+    remote_src: yes
+  when: not teleport_bin.stat.exists or update_teleport
+
+- name: Install teleport
+  become: yes
+  ansible.builtin.command:  # noqa no-changed-when
+    cmd: ./install
+  args:
+    chdir: /tmp/teleport
+  notify: Reload_Teleport
+  when: not teleport_bin.stat.exists or update_teleport
+
+- name: Create teleport config
+  become: yes
+  ansible.builtin.template:
+    src: "{{ teleport_config_template }}"
+    dest: "{{ teleport_config_path }}"
+    owner: "root"
+    group: "root"
+    mode: 0600
+    backup: "{{ backup_teleport_config }}"
+  when: teleport_template_config
+  notify:
+    - Reload_Teleport
+
+- name: Ensure systemd directory exists
+  become: yes
+  ansible.builtin.file:
+    dest: "/etc/systemd/system"
+    owner: "root"
+    group: "root"
+    mode: 0755
+    state: directory
+
+- name: Create teleport service
+  become: yes
+  ansible.builtin.template:
+    src: "{{ teleport_service_template }}"
+    dest: "/etc/systemd/system/teleport.service"
+    owner: "root"
+    group: "root"
+    mode: 0644
+  notify: Reload_Teleport
+  when: teleport_control_systemd
+
+- name: Ensure teleport started and enabled on boot.
+  become: yes
+  ansible.builtin.systemd:
+    name: "teleport"
+    state: "started"
+    daemon_reexec: yes
+    enabled: yes
+  when:
+    - teleport_control_systemd

@@ -1,0 +1,6 @@
+- name: apply conf
+  hosts: "{{ app_name }}"
+  remote_user: "{{ default_user }}"
+
+  roles:
+    - remove

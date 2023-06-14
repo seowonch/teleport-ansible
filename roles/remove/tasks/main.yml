@@ -1,0 +1,24 @@
+
+- name: Check if teleport is installed.
+  ansible.builtin.stat:
+    path: /usr/local/bin/teleport
+  register: teleport_bin
+
+- name: Stop & Disable teleport
+  ansible.builtin.shell: |
+    sudo systemctl stop teleport
+    sudo systemctl disable teleport
+  when: teleport_bin.stat.exists
+
+- name: Remove teleport configuration files and binary files
+  ansible.builtin.shell: |
+    sudo rm -rf /var/lib/teleport
+    sudo rm -f /etc/teleport.yaml
+    sudo rm -f /usr/local/bin/teleport
+    sudo apt-get remove teleport -y
+    sudo apt-get remove teleport-ent -y
+  register: command_output
+  ignore_errors: yes
+  when: teleport_bin.stat.exists
+
+

@@ -1,0 +1,18 @@
+---
+teleport_version: "12.2.3"
+teleport_architecture: "amd64-bin"
+# teleport_architecture: "arm-bin"
+teleport_auth_server: ""
+teleport_url: "https://get.gravitational.com/teleport-v{{ teleport_version }}-linux-{{ teleport_architecture }}.tar.gz"
+teleport_config_path: "/etc/teleport.yaml"
+teleport_iam_token: "iam-token"
+teleport_join_method: "iam"
+backup_teleport_config: yes
+teleport_config_template: "default_teleport.yaml.j2"
+teleport_service_template: "default_teleport.service.j2"
+teleport_ssh_labels: []
+teleport_proxy_server: "https://test.teleport.sh:443"
+teleport_control_systemd: yes
+teleport_template_config: yes
+# Default dont change
+update_teleport: no
